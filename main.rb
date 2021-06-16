@@ -80,7 +80,7 @@ bot.command :move, description: 'Make a move during a game', min_args: 1 do |msg
         game.end_game
         msg.respond("Tie!\n\n#{game.stringify_board}")
       else
-        color = ":#{player.color}_circle:"
+        color = ":#{game.whose_turn.color}_circle:"
         add_reactions(msg.respond("#{game.whose_turn.user.mention}'s turn: #{color}\n\n#{game.stringify_board}"))
       end
     end
@@ -126,7 +126,7 @@ bot.reaction_add do |evt|
       game.end_game
       evt.message.respond("Tie!\n\n#{game.stringify_board}")
     else
-      color = ":#{player.color}_circle:"
+      color = ":#{game.whose_turn.color}_circle:"
       add_reactions(evt.message.respond("#{game.whose_turn.user.mention}'s turn: #{color}\n\n#{game.stringify_board}"))
     end
   end
