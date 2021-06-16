@@ -4,15 +4,7 @@
 class Game
   attr_reader :p1, :p2, :turn_count
 
-  NUMBERS_HASH = {
-    1 => ':one:',
-    2 => ':two:',
-    3 => ':three:',
-    4 => ':four:',
-    5 => ':five:',
-    6 => ':six:',
-    7 => ':seven:'
-  }.freeze
+  NUMBERS_HASH = %w[:one: :two: :three: :four: :five: :six: :seven:].freeze
 
   @active_games = []
   @active_players = []
@@ -79,7 +71,7 @@ class Game
   def print_number_row
     str = ''
     @board.each_index do |i|
-      str += NUMBERS_HASH[i + 1]
+      str += NUMBERS_HASH[i]
     end
     str
   end
