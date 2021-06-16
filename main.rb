@@ -3,6 +3,7 @@
 #
 # TODO:
 # !c4restart (admin permissions required)
+# status thing
 
 require 'discordrb'
 require_relative 'game.rb'
@@ -26,7 +27,10 @@ def add_reactions(msg)
   nil # it does msg.respond with the return value of this method for some reason
 end
 
-bot.ready { puts 'Bot connected successfully' }
+bot.ready do
+  puts 'Bot connected successfully'
+  bot.update_status('online', '!c4help', nil)
+end
 
 # !c4play <target>, start a game against another member
 bot.command :play, description: 'Start a game against someone', min_args: 1 do |msg|
@@ -87,8 +91,8 @@ bot.command :move, description: 'Make a move during a game', min_args: 1 do |msg
   end
 end
 
-# !c4end, end game prematurely
-bot.command :end, description: "End the game you're currently playing", max_args: 0 do |msg|
+# !c4resign, end game prematurely
+bot.command :resign, description: "Resign the game you're currently playing", max_args: 0 do |msg|
   break unless msg.server
 
   player = Game.locate_player(msg.author)
@@ -97,7 +101,8 @@ bot.command :end, description: "End the game you're currently playing", max_args
   else
     game = player.game
     game.end_game
-    msg.respond("#{player.user.mention} has ended the game between #{game.p1.name} and #{game.p2.name}.")
+    win_message = "#{player == game.p1 ? game.p2.name : game.p1.name} wins!\n"
+    msg.respond("#{win_message}#{player.user.mention} has resigned the game between #{game.p1.name} and #{game.p2.name}.")
   end
 end
 
