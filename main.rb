@@ -1,21 +1,23 @@
 # frozen-string-literal: true
 
-#
-# TODO:
-# !c4restart (admin permissions required)
-# status thing
-
 require 'discordrb'
 require_relative 'game.rb'
 require_relative 'player.rb'
 
 config = File.foreach('config.txt').map { |line| line.split(' ').join(' ') }
 TOKEN = config[0].to_s
-ID = config[1].to_s
+CLIENT_ID = config[1].to_s
 PREFIX = %w[!c4 !connect4].freeze
 LOG_MODE = :silent
 
-bot = Discordrb::Commands::CommandBot.new token: TOKEN, client_id: ID, prefix: PREFIX, max_args: 1, log_mode: LOG_MODE
+bot = Discordrb::Commands::CommandBot.new(
+  token: TOKEN,
+  client_id: CLIENT_ID,
+  prefix: PREFIX,
+  max_args: 1,
+  log_mode: LOG_MODE,
+  help_command: false
+)
 
 BOTS_ALLOWED = true
 NUMBER_CODES = %w[1⃣ 2⃣ 3⃣ 4⃣ 5⃣ 6⃣ 7⃣].freeze
@@ -33,7 +35,7 @@ bot.ready do
 end
 
 # !c4play <target>, start a game against another member
-bot.command :play, description: 'Start a game against someone', min_args: 1 do |msg|
+bot.command :play, description: 'Start a game against someone', min_args: 1, aliases: [:p] do |msg|
   break unless msg.server
 
   target_name = msg.content[(msg.content.index(' ') + 1)..-1]
@@ -59,7 +61,7 @@ bot.command :play, description: 'Start a game against someone', min_args: 1 do |
 end
 
 # !c4move <column>, make a move during a game in a certain column
-bot.command :move, description: 'Make a move during a game', min_args: 1 do |msg|
+bot.command :move, description: 'Make a move during a game', min_args: 1, aliases: [:m] do |msg|
   break unless msg.server
 
   col = msg.content.split[1].to_i - 1
@@ -104,6 +106,23 @@ bot.command :resign, description: "Resign the game you're currently playing", ma
     win_message = "#{player == game.p1 ? game.p2.name : game.p1.name} wins!\n"
     msg.respond("#{win_message}#{player.user.mention} has resigned the game between #{game.p1.name} and #{game.p2.name}.")
   end
+end
+
+bot.command :help, description: 'Shows a list of available commands', max_args: 0, aliases: [:h] do |msg|
+  break unless msg.server
+
+  response = '**List of commands:**'
+  bot.commands.each do |name, cmd|
+    response += case name
+                when :play
+                  "\n**!c4play <person's name>**: #{cmd.attributes[:description]}"
+                when :move
+                  "\n**!c4move <column>**: #{cmd.attributes[:description]} (can also use reactions to make moves)"
+                else
+                  "\n**!c4#{name}**: #{cmd.attributes[:description]}"
+                end
+  end
+  msg.respond(response)
 end
 
 bot.reaction_add do |evt|
