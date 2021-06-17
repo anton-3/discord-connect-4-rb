@@ -111,15 +111,19 @@ end
 bot.command :help, description: 'Shows a list of available commands', max_args: 0, aliases: [:h] do |msg|
   break unless msg.server
 
+  puts bot.commands
   response = '**List of commands:**'
   bot.commands.each do |name, cmd|
+    next if cmd.is_a?(Discordrb::Commands::CommandAlias)
+
+    desc = cmd.attributes[:description]
     response += case name
                 when :play
-                  "\n**!c4play <person's name>**: #{cmd.attributes[:description]}"
+                  "\n**!c4play <person's name>**: #{desc}"
                 when :move
-                  "\n**!c4move <column>**: #{cmd.attributes[:description]} (can also use reactions to make moves)"
+                  "\n**!c4move <column>**: #{desc} (can also use reactions to make moves)"
                 else
-                  "\n**!c4#{name}**: #{cmd.attributes[:description]}"
+                  "\n**!c4#{name}**: #{desc}"
                 end
   end
   msg.respond(response)
