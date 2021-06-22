@@ -111,7 +111,6 @@ end
 bot.command :help, description: 'Shows a list of available commands', max_args: 0, aliases: [:h] do |msg|
   break unless msg.server
 
-  puts bot.commands
   response = '**List of commands:**'
   bot.commands.each do |name, cmd|
     next if cmd.is_a?(Discordrb::Commands::CommandAlias)
