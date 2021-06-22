@@ -94,7 +94,7 @@ bot.command :move, description: 'Make a move during a game', min_args: 1, aliase
 end
 
 # !c4resign, end game prematurely
-bot.command :resign, description: "Resign the game you're currently playing", max_args: 0 do |msg|
+bot.command :resign, description: "Resign the game you're currently playing", max_args: 0, aliases: [:r] do |msg|
   break unless msg.server
 
   player = Game.locate_player(msg.author)
