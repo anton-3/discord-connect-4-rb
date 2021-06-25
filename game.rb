@@ -17,9 +17,11 @@ class Game
     end
   end
 
-  def initialize(player1, player2)
-    @p1 = Player.new(player1, self, :red)
-    @p2 = Player.new(player2, self, :yellow)
+  def initialize(player1, player2, randomize: false)
+    players = [player1, player2]
+    players.shuffle! if randomize
+    @p1 = Player.new(players[0], self, :red)
+    @p2 = Player.new(players[1], self, :yellow)
     @turn_count = 1
     @board = create_board
     activate_game

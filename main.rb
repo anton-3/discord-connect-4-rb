@@ -20,6 +20,7 @@ bot = Discordrb::Commands::CommandBot.new(
 )
 
 BOTS_ALLOWED = true
+RANDOM_STARTING_PLAYER = true
 NUMBER_CODES = %w[1⃣ 2⃣ 3⃣ 4⃣ 5⃣ 6⃣ 7⃣].freeze
 
 def add_reactions(msg)
@@ -54,9 +55,9 @@ bot.command :play, description: 'Start a game against someone', min_args: 1, ali
   elsif target == bot.bot_user
     msg.respond("You can't play the bot")
   else
-    game = Game.new(msg.author, target)
+    game = Game.new(msg.author, target, randomize: RANDOM_STARTING_PLAYER)
     color = ":#{game.p1.color}_circle:"
-    add_reactions(msg.respond("#{msg.author.mention}'s turn: #{color}\n\n#{game.stringify_board}"))
+    add_reactions(msg.respond("#{game.p1.user.mention}'s turn: #{color}\n\n#{game.stringify_board}"))
   end
 end
 
