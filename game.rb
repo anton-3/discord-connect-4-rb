@@ -2,29 +2,18 @@
 
 # game logic
 class Game
-  attr_reader :p1, :p2, :turn_count
+  attr_reader :p1, :p2, :turn_count, :board
 
   NUMBERS_HASH = %w[:one: :two: :three: :four: :five: :six: :seven:].freeze
 
-  @active_games = []
-  @active_players = []
-
-  class << self
-    attr_reader :active_players
-
-    def locate_player(player)
-      @active_players.select { |p| p.user == player }[0]
-    end
-  end
-
-  def initialize(player1, player2, randomize: false)
-    players = [player1, player2]
+  # randomize: whether or not to randomize who has the first move
+  # contains_ai: whether or not user2 should be considered an ai
+  def initialize(user1, user2, randomize: false, contains_ai: false)
+    players = [user1, user2]
     players.shuffle! if randomize
-    @p1 = Player.new(players[0], self, :red)
-    @p2 = Player.new(players[1], self, :yellow)
+    create_players(players, contains_ai)
     @turn_count = 1
     @board = create_board
-    activate_game
   end
 
   def make_move(col, color)
@@ -56,11 +45,13 @@ class Game
     end
   end
 
-  def end_game
-    deactivate_game
-  end
-
   private
+
+  def create_players(players, contains_ai)
+    @p1 = Player.new(self, :red, players[0])
+    p2_class = contains_ai ? AIPlayer : Player
+    @p2 = p2_class.new(self, :yellow, players[1])
+  end
 
   def create_board
     board = []
@@ -163,16 +154,5 @@ class Game
       row_arr.push(col[index])
     end
     row_arr
-  end
-
-  def activate_game
-    self.class.active_players.push(@p1, @p2)
-    puts "#{Time.new.strftime('%H:%M:%S')} Game between #{@p1.name} and #{@p2.name} has started"
-  end
-
-  def deactivate_game
-    self.class.active_players.delete(@p1)
-    self.class.active_players.delete(@p2)
-    puts "#{Time.new.strftime('%H:%M:%S')} Game between #{@p1.name} and #{@p2.name} has ended"
   end
 end
