@@ -4,24 +4,26 @@
 class Board
   attr_reader :turn_count
 
-  def initialize
+  def initialize(p1_color, p2_color)
     @turn_count = 1
+    @colors = { 1 => p1_color, 2 => p2_color }
     @contents = []
-    7.times { @contents.push(Array.new(6, nil)) }
+    7.times { @contents.push(Array.new(6, 0)) }
   end
 
-  def make_move(col, color)
+  def make_move(col, value)
     # assumes the move is legal (column isn't full)
+    # player 1's move is stored as 1, player 2's stored as 2
     col_arr = @contents[col]
-    col_arr[col_arr.index(nil)] = color
+    col_arr[col_arr.index(0)] = value
     @turn_count += 1
   end
 
   def to_s
     str = ''
     6.times do |num|
-      row(num).each do |color|
-        str += color.nil? ? ':blue_circle:' : ":#{color}_circle:"
+      row(num).each do |x|
+        str += x.zero? ? ':blue_circle:' : ":#{@colors[x]}_circle:"
       end
       str += "\n"
     end
@@ -33,12 +35,12 @@ class Board
   end
 
   def check_col_full?(col)
-    !@contents[col].include?(nil)
+    !@contents[col].include?(0)
   end
 
   def check_full?
     @contents.reduce(true) do |memo, col|
-      memo && !col.include?(nil)
+      memo && !col.include?(0)
     end
   end
 
@@ -84,7 +86,7 @@ class Board
     array.each_with_index do |el, i|
       next if i.zero?
 
-      !el.nil? && el == array[i - 1] ? current_length += 1 : current_length = 1
+      !el.zero? && el == array[i - 1] ? current_length += 1 : current_length = 1
       longest_length = current_length if current_length > longest_length
     end
     longest_length >= 4
@@ -94,8 +96,8 @@ class Board
     contents = Marshal.load(Marshal.dump(@contents)) # deep copy
     # shift each column down proportionally to make the diagonals line up
     contents.each_with_index do |col, i|
-      (6 - i).times { col.unshift(false) }
-      i.times { col.push(false) }
+      (6 - i).times { col.unshift(nil) }
+      i.times { col.push(nil) }
     end
     make_diags(contents)
   end
@@ -104,8 +106,8 @@ class Board
     contents = Marshal.load(Marshal.dump(@contents)) # deep copy
     # shift each column up proportionally to make the diagonals line up
     contents.each_with_index do |col, i|
-      i.times { col.unshift(false) }
-      (6 - i).times { col.push(false) }
+      i.times { col.unshift(nil) }
+      (6 - i).times { col.push(nil) }
     end
     make_diags(contents)
   end
@@ -114,7 +116,7 @@ class Board
     diags = []
     contents[0].length.times do |num|
       diag = row(num, contents)
-      diag.delete(false)
+      diag.delete(nil)
       diags.push(diag)
     end
     diags
