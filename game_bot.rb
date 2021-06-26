@@ -156,10 +156,12 @@ class GameBot
   end
 
   def start_game(msg, user1, user2)
-    game = Game.new(user1, user2, randomize: RANDOM_STARTING_PLAYER, contains_ai: ai?(user2))
+    which_ai = [ai?(user1), ai?(user2)]
+    game = Game.new user1, user2, randomize: RANDOM_STARTING_PLAYER, which_ai: which_ai
     puts "#{Time.new.strftime('%H:%M:%S')} Game between #{game.p1.name} and #{game.p2.name} has started"
     @active_players.push(game.p1, game.p2)
     display_turn(game, msg.channel)
+    handle_ai(game.whose_turn, msg.channel)
   end
 
   def end_game(game)
@@ -178,11 +180,13 @@ class GameBot
       msg.respond("Tie!\n\n#{game}")
     else
       display_turn(game, msg.channel)
-      handle_ai(game.whose_turn, msg.channel) if ai?(game.whose_turn.user)
+      handle_ai(game.whose_turn, msg.channel)
     end
   end
 
   def handle_ai(ai_player, channel)
+    return unless ai?(ai_player.user)
+
     best_move = ai_player.find_best_move
     ai_player.make_move(best_move)
     display_turn(ai_player.game, channel)
