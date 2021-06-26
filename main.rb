@@ -2,6 +2,7 @@
 
 require_relative 'game_bot'
 require_relative 'game'
+require_relative 'board'
 require_relative 'player'
 require_relative 'ai_player'
 

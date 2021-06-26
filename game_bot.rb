@@ -172,10 +172,10 @@ class GameBot
     game = player.game
     if game.check_win?
       end_game(game)
-      msg.respond("#{player.name} wins!\n\n#{game.stringify_board}")
+      msg.respond("#{player.name} wins!\n\n#{game}")
     elsif game.check_board_full?
       end_game(game)
-      msg.respond("Tie!\n\n#{game.stringify_board}")
+      msg.respond("Tie!\n\n#{game}")
     else
       display_turn(game, msg.channel)
       handle_ai(game.whose_turn, msg.channel) if ai?(game.whose_turn.user)
@@ -197,7 +197,7 @@ class GameBot
   def display_turn(game, channel)
     player = game.whose_turn
     color = ":#{player.color}_circle:"
-    add_reactions(channel.send("#{player.user.mention}'s turn: #{color}\n\n#{game.stringify_board}"))
+    add_reactions(channel.send("#{player.user.mention}'s turn: #{color}\n\n#{game}"))
   end
 
   def add_reactions(msg)
