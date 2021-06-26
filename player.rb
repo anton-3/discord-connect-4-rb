@@ -1,13 +1,13 @@
 # frozen-string-literal: true
 
-# player logic
+# logic for all connect 4 players
 class Player
-  attr_reader :user, :game, :color, :name
+  attr_reader :game, :color, :user, :name
 
-  def initialize(user, game, color)
-    @user = user
+  def initialize(game, color, user)
     @game = game
     @color = color
+    @user = user
     @name = user.display_name
   end
 
