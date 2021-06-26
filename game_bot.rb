@@ -156,8 +156,7 @@ class GameBot
   end
 
   def start_game(msg, user1, user2)
-    which_ai = [ai?(user1), ai?(user2)]
-    game = Game.new user1, user2, randomize: RANDOM_STARTING_PLAYER, which_ai: which_ai
+    game = Game.new user1, user2, randomize: RANDOM_STARTING_PLAYER, contains_ai: ai?(user2)
     puts "#{Time.new.strftime('%H:%M:%S')} Game between #{game.p1.name} and #{game.p2.name} has started"
     @active_players.push(game.p1, game.p2)
     display_turn(game, msg.channel)
