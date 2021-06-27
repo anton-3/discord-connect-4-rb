@@ -8,15 +8,15 @@ class Game
   COLORS = { 1 => :red, 2 => :yellow }.freeze
 
   # randomize: whether or not to randomize who has the first move
-  # contains_ai: whether user2 should be considered ai
-  def initialize(user1, user2, randomize: false, contains_ai: false)
+  # which_ai: which users should be considered ai
+  def initialize(user1, user2, randomize: false, which_ai: [false, false])
+    @board = Board.new(COLORS[1], COLORS[2])
     players = [user1, user2]
-    create_players(players, contains_ai, randomize)
-    @board = Board.new(@p1.color, @p2.color)
+    create_players(players, which_ai, randomize)
   end
 
-  def make_move(col, color)
-    @board.make_move(col, COLORS.key(color))
+  def make_move(move, value)
+    @board.make_move(move, value)
   end
 
   def to_s
@@ -28,16 +28,16 @@ class Game
     @board.turn_count.odd? ? @p1 : @p2
   end
 
-  def check_win?
-    @board.check_win?
+  def win?
+    @board.win?
   end
 
-  def check_col_full?(col)
-    @board.check_col_full?(col)
+  def col_full?(col)
+    @board.col_full?(col)
   end
 
-  def check_board_full?
-    @board.check_full?
+  def board_full?
+    @board.full?
   end
 
   private
@@ -50,11 +50,12 @@ class Game
     str
   end
 
-  def create_players(players, contains_ai, randomize)
+  def create_players(players, which_ai, randomize)
     order = [0, 1]
     order.shuffle! if randomize
-    p_classes = [Player, contains_ai ? AIPlayer : Player]
-    @p1 = p_classes[order[0]].new self, COLORS[1], players[order[0]]
-    @p2 = p_classes[order[1]].new self, COLORS[2], players[order[1]]
+    p_classes = []
+    2.times { |num| p_classes.push(which_ai[num] ? AIPlayer : Player) }
+    @p1 = p_classes[order[0]].new self, COLORS[1], players[order[0]], 1
+    @p2 = p_classes[order[1]].new self, COLORS[2], players[order[1]], -1
   end
 end

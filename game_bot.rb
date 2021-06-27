@@ -19,6 +19,10 @@ class GameBot
     resign: "Resign the game you're currently playing",
     help: 'Shows a list of available commands'
   }.freeze
+  # AI level 1: completely random moves
+  # AI level 2: takes and blocks immediate wins, otherwise random
+  # AI level 3: minimax algorithm
+  AI_LEVEL = 3
 
   def initialize
     @bot = create_bot
@@ -78,22 +82,22 @@ class GameBot
   def move(msg)
     return unless msg.server
 
-    col = msg.content.split[1].to_i - 1
+    move = msg.content.split[1].to_i - 1
     # get the Player object for the author so we can figure out which game it is
     player = locate_player(msg.author)
     if !player
       msg.respond("You're not in a game")
-    elsif col.negative? || col.digits.count > 1 || col > 6 # between 0 and 6
+    elsif move.negative? || move.digits.count > 1 || move > 6 # between 0 and 6
       msg.respond('Invalid input')
     else
       game = player.game
       if game.whose_turn != player
         msg.respond('Not your turn')
-      elsif game.check_col_full?(col)
+      elsif game.col_full?(move)
         msg.respond('Illegal move')
       else
-        player.make_move(col)
-        handle_move(player, msg)
+        player.make_move(move)
+        handle_move(player, msg.channel)
       end
     end
   end
@@ -137,17 +141,17 @@ class GameBot
 
     evt.message.delete_reaction(evt.user, evt.emoji.to_s)
     user_id = evt.message.content[2...(evt.message.content.index('>'))].to_i
-    return unless evt.user.id == user_id && NUMBER_CODES.include?(evt.emoji.to_s)
+    return unless evt.message.reactions.length == 7 && NUMBER_CODES.include?(evt.emoji.to_s) && evt.user.id == user_id
 
-    col = NUMBER_CODES.index(evt.emoji.to_s)
+    move = NUMBER_CODES.index(evt.emoji.to_s)
     player = locate_player(evt.user)
     return unless player
 
     game = player.game
-    return if game.whose_turn != player || game.check_col_full?(col)
+    return if game.whose_turn != player || game.col_full?(move)
 
-    player.make_move(col)
-    handle_move(player, evt.message)
+    player.make_move(move)
+    handle_move(player, evt.channel)
   end
 
   def find_target(msg)
@@ -156,7 +160,8 @@ class GameBot
   end
 
   def start_game(msg, user1, user2)
-    game = Game.new user1, user2, randomize: RANDOM_STARTING_PLAYER, contains_ai: ai?(user2)
+    which_ai = [ai?(user1), ai?(user2)]
+    game = Game.new user1, user2, randomize: RANDOM_STARTING_PLAYER, which_ai: which_ai
     puts "#{Time.new.strftime('%H:%M:%S')} Game between #{game.p1.name} and #{game.p2.name} has started"
     @active_players.push(game.p1, game.p2)
     display_turn(game, msg.channel)
@@ -169,45 +174,54 @@ class GameBot
     @active_players.delete(game.p2)
   end
 
-  def handle_move(player, msg)
+  def handle_move(player, channel)
     game = player.game
-    if game.check_win?
+    if game.win?
       end_game(game)
-      msg.respond("#{player.name} wins!\n\n#{game}")
-    elsif game.check_board_full?
+      channel.send("#{player.name} wins!\n\n#{game}")
+    elsif game.board_full?
       end_game(game)
-      msg.respond("Tie!\n\n#{game}")
+      channel.send("Tie!\n\n#{game}")
     else
-      display_turn(game, msg.channel)
-      handle_ai(game.whose_turn, msg.channel)
+      display_turn(game, channel)
+      handle_ai(game.whose_turn, channel)
     end
   end
 
   def handle_ai(ai_player, channel)
     return unless ai?(ai_player.user)
 
-    best_move = ai_player.find_best_move
-    ai_player.make_move(best_move)
-    display_turn(ai_player.game, channel)
+    sleep 1
+    move = case AI_LEVEL
+           when 1
+             ai_player.find_random_move
+           when 2
+             ai_player.find_decent_move
+           when 3
+             ai_player.find_best_move
+           end
+    ai_player.make_move(move)
+    handle_move(ai_player, channel)
   end
 
   # checks if a user should be considered an ai
-  # currently you can only be an ai if you're this bot's client user
+  # currently you can only be an ai if you're a bot account
   def ai?(user)
-    user == @bot.bot_user
+    user.bot_account?
   end
 
   def display_turn(game, channel)
     player = game.whose_turn
     color = ":#{player.color}_circle:"
-    add_reactions(channel.send("#{player.user.mention}'s turn: #{color}\n\n#{game}"))
+    # don't add anything to the beginning of this message or stuff breaks
+    msg = channel.send("#{player.user.mention}'s turn: #{color}\n\n#{game}")
+    add_reactions(msg) unless player.is_a?(AIPlayer)
   end
 
   def add_reactions(msg)
     7.times do |num|
       msg.react(NUMBER_CODES[num])
     end
-    nil # it does msg.respond with the return value of this method for some reason
   end
 
   # returns the player object of a discord user if in @active_players

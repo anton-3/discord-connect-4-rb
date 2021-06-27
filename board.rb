@@ -2,21 +2,23 @@
 
 # logic for all game boards
 class Board
-  attr_reader :turn_count
+  attr_reader :turn_count, :contents, :legal_moves
 
   def initialize(p1_color, p2_color)
     @turn_count = 1
-    @colors = { 1 => p1_color, 2 => p2_color }
+    @colors = { 1 => p1_color, -1 => p2_color }
+    @legal_moves = (0..6).to_a
     @contents = []
     7.times { @contents.push(Array.new(6, 0)) }
   end
 
-  def make_move(col, value)
+  def make_move(move, value)
     # assumes the move is legal (column isn't full)
-    # player 1's move is stored as 1, player 2's stored as 2
-    col_arr = @contents[col]
+    # player 1's move is stored as 1, player 2's stored as -1
+    col_arr = @contents[move]
     col_arr[col_arr.index(0)] = value
     @turn_count += 1
+    update_legal_moves
   end
 
   def to_s
@@ -30,15 +32,15 @@ class Board
     str
   end
 
-  def check_win?
+  def win?
     four_in_row? || four_in_col? || four_in_diag?
   end
 
-  def check_col_full?(col)
+  def col_full?(col)
     !@contents[col].include?(0)
   end
 
-  def check_full?
+  def full?
     @contents.reduce(true) do |memo, col|
       memo && !col.include?(0)
     end
@@ -120,5 +122,11 @@ class Board
       diags.push(diag)
     end
     diags
+  end
+
+  def update_legal_moves
+    7.times do |move|
+      @legal_moves.delete(move) if col_full?(move)
+    end
   end
 end
