@@ -1,7 +1,7 @@
 # frozen-string-literal: true
 
 # game logic
-class Game
+class Connect4
   attr_reader :p1, :p2, :board
 
   NUMBERS_HASH = %w[:one: :two: :three: :four: :five: :six: :seven:].freeze

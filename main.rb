@@ -1,9 +1,10 @@
 # frozen-string-literal: true
 
-require_relative 'game_bot'
-require_relative 'game'
+require 'discordrb'
+require_relative 'connect_4_bot'
+require_relative 'connect_4'
 require_relative 'board'
 require_relative 'player'
 require_relative 'ai_player'
 
-GameBot.new.run
+Connect4Bot.new.run

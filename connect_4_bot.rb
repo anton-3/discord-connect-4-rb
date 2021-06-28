@@ -1,9 +1,7 @@
 # frozen-string-literal: true
 
-require 'discordrb'
-
 # logic for the bot and its commands
-class GameBot
+class Connect4Bot
   CONFIG = File.foreach('config.txt').map { |line| line.split(' ').join(' ') }
   TOKEN = CONFIG[0].to_s
   CLIENT_ID = CONFIG[1].to_s
@@ -55,7 +53,7 @@ class GameBot
   end
 
   def on_ready
-    puts 'Bot connected successfully'
+    puts 'Connect 4 Bot connected successfully'
     @bot.update_status(STATUS, '!c4help', nil)
   end
 
