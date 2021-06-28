@@ -7,10 +7,8 @@
 #
 
 # logic for an ai player that always finds the best move
-# eval table borrowed from https://softwareengineering.stackexchange.com/questions/263514/why-does-this-evaluation-function-work-in-a-connect-four-game-in-java
 class AIPlayer < Player
-  # 1-3 is fast, 5 is ~5 seconds per move
-  CUTOFF_DEPTH = 5
+  # assigns a score to each position on the board
   EVAL_TABLE = [
     [3, 4, 5, 7, 5, 4, 3],
     [4, 6, 8, 10, 8, 6, 4],
@@ -19,6 +17,12 @@ class AIPlayer < Player
     [4, 6, 8, 10, 8, 6, 4],
     [3, 4, 5, 7, 5, 4, 3]
   ].freeze
+  # assigns a score to each length of sequence
+  SCORE_TABLE = {
+    1 => 1,
+    2 => 3,
+    3 => 7
+  }.freeze
   LOG_MOVES = true
 
   def initialize(*)
@@ -52,6 +56,7 @@ class AIPlayer < Player
     return 3 if @board.turn_count == 1
 
     moves = {}
+    @cutoff_depth = calculate_cutoff_depth(@board.legal_moves.length)
 
     @board.legal_moves.each do |move|
       copy = Marshal.load(Marshal.dump(@board))
@@ -76,7 +81,7 @@ class AIPlayer < Player
   def minimax(board, p_value, depth = 0, alpha = -10000, beta = 10000)
     return 0 if board.full?
     return -1000 + depth if board.win?
-    return heuristic(board, p_value) if depth == CUTOFF_DEPTH
+    return heuristic(board, p_value) if depth == @cutoff_depth
 
     board.legal_moves.each do |move|
       copy = Marshal.load(Marshal.dump(board))
@@ -93,6 +98,12 @@ class AIPlayer < Player
   # returns static evaluation of a board position
   # creates a score based on the positions of the pieces
   def heuristic(board, p_value)
+    score_position(board, p_value) + score_potential_wins(board, p_value)
+  end
+
+  # scores a position based on an evaluation table
+  # eval table borrowed from https://softwareengineering.stackexchange.com/questions/263514/why-does-this-evaluation-function-work-in-a-connect-four-game-in-java
+  def score_position(board, p_value)
     score = 0
     board.contents.each_with_index do |col, col_idx|
       col.each_with_index do |value, row_idx|
@@ -103,6 +114,33 @@ class AIPlayer < Player
       end
     end
     score
+  end
+
+  # scores a position based on all the potential wins left for each player
+  def score_potential_wins(board, p_value)
+    score = 0
+    lines = (board.rows + board.contents + board.diagonals).select { |arr| arr.length >= 4 } # remove if shorter than 4
+    lines.each do |line|
+      next if line.uniq.length == 1 # don't evaluate if it's all zeroes
+
+      (line.length - 3).times do |idx|
+        sequence = line[idx..(idx + 3)] # iterate through all sequences of 4 within each line
+        next if sequence.uniq.length == 1 # don't evaluate if it's all zeroes
+
+        if !sequence.include?(-p_value)
+          score += SCORE_TABLE[sequence.count(p_value)]
+        elsif !sequence.include?(p_value)
+          score -= SCORE_TABLE[sequence.count(-p_value)]
+        end
+      end
+    end
+    score
+  end
+
+  # calculate how deep the minimax algorithm should look based on how many legal moves there are in a position
+  def calculate_cutoff_depth(num_moves)
+    initial_cutoff = 5
+    cutoff = num_moves < 6 ? initial_cutoff + (6 - num_moves) : initial_cutoff
   end
 
   def win_for?(board, value)

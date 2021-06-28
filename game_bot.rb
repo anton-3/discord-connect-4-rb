@@ -8,10 +8,10 @@ class GameBot
   TOKEN = CONFIG[0].to_s
   CLIENT_ID = CONFIG[1].to_s
   PREFIX = %w[!c4 !connect4].freeze
-  LOG_MODE = :normal
+  LOG_MODE = :silent
   BOTS_ALLOWED = true
   RANDOM_STARTING_PLAYER = true
-  STATUS = 'invisible'
+  STATUS = 'online'
   NUMBER_CODES = %w[1⃣ 2⃣ 3⃣ 4⃣ 5⃣ 6⃣ 7⃣].freeze
   DESCRIPTIONS = {
     play: 'Start a game against someone',

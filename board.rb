@@ -46,6 +46,20 @@ class Board
     end
   end
 
+  # returns array of all rows
+  def rows
+    arr = []
+    @contents[0].length.times do |num|
+      arr.push(row(num))
+    end
+    arr
+  end
+
+  # returns array of all diagonals
+  def diagonals
+    find_up_diags + find_down_diags
+  end
+
   private
 
   # rows counted top to bottom, starts at 0
@@ -95,29 +109,29 @@ class Board
   end
 
   def find_up_diags
-    contents = Marshal.load(Marshal.dump(@contents)) # deep copy
+    copy = Marshal.load(Marshal.dump(@contents)) # deep copy
     # shift each column down proportionally to make the diagonals line up
-    contents.each_with_index do |col, i|
+    copy.each_with_index do |col, i|
       (6 - i).times { col.unshift(nil) }
       i.times { col.push(nil) }
     end
-    make_diags(contents)
+    make_diags(copy)
   end
 
   def find_down_diags
-    contents = Marshal.load(Marshal.dump(@contents)) # deep copy
+    copy = Marshal.load(Marshal.dump(@contents)) # deep copy
     # shift each column up proportionally to make the diagonals line up
-    contents.each_with_index do |col, i|
+    copy.each_with_index do |col, i|
       i.times { col.unshift(nil) }
       (6 - i).times { col.push(nil) }
     end
-    make_diags(contents)
+    make_diags(copy)
   end
 
-  def make_diags(contents)
+  def make_diags(ary)
     diags = []
-    contents[0].length.times do |num|
-      diag = row(num, contents)
+    ary[0].length.times do |num|
+      diag = row(num, ary)
       diag.delete(nil)
       diags.push(diag)
     end
